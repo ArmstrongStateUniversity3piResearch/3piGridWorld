@@ -1,0 +1,56 @@
+3pi/m3pi Navigation API
+* write up in report
+
+void followTrack(); // open loop/infinite
+boolean followTrack(); // returns true when done
+boolean hasTrack(); // returns true if a segment is detected
+void gotoPoint(int, int);
+boolean gotoIntersection(int, int); // returns true when the robot reaches the desired intersection on 
+									// the grid
+boolean gotoCorner(int); 			// returns true when the robot reaches the desired corner of
+									// the grid always starting at 0 numbered counter-clockwise
+boolean gotoEdge(int); 				// returns true when the robot reaches the desired edge of 
+									// the grid
+									
+Implementation (Psuedo):
+	
+	gotoIntersection
+		gotoPoint(x, y);
+		if (currX == x && currY == y)
+			return true;
+		return false;
+
+	gotoCorner
+		switch(int c) {
+			case 0:
+				return gotoIntersection(0, 0);
+			case 1:
+				return gotoIntersection(MAX, 0);
+			case 2:
+				return gotoIntersection(MAX, MAX);
+			case 3:
+				return gotoIntersection(0, MAX);
+		}
+		
+	gotoEdge
+		switch(int e) {
+			case 0:
+				return gotoIntersection(0, currY);
+			case 1:
+				return gotoIntersection(currX, 0);
+			case 2:
+				return gotoIntersection(MAX, currY);
+			case 3:
+				return gotoIntersection(currX, MAX);
+		}
+
+									
+Scenario:
+Grid World Size: 5 x 5
+Robot initial position at (0, 0)
+Desired Robot goal position at intersection (2, 3)
+Planner to generate path for the robot to take.
+
+Additional Concentrations:
+- how to specify/denote a robot's orientation
+- a corollary to that: the need to specify rotation primitives [0, 90/-90, 180, 360 degrees]
