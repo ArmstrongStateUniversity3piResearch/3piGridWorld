@@ -132,6 +132,34 @@ void initialize()
 	while(is_playing());
 }
 
+
+// Relocated the turn method from turn.c
+
+void turn(char dir)
+{
+	switch(dir)
+	{
+	case 'L':
+		// Turn left.
+		set_motors(-80,80);
+		delay_ms(200);
+		break;
+	case 'R':
+		// Turn right.
+		set_motors(80,-80);
+		delay_ms(200);
+		break;
+	case 'B':
+		// Turn around.
+		set_motors(80,-80);
+		delay_ms(400);
+		break;
+	case 'S':
+		// Don't do anything!
+		break;
+	}
+}
+
 // This is the main function, where the code starts.  All C programs
 // must have a main() function defined somewhere.
 int main()
