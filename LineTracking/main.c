@@ -1,7 +1,6 @@
 // The 3pi include file must be at the beginning of any program that
 // uses the Pololu AVR library and 3pi.
 #include <pololu/3pi.h>
-
 // This include file allows data to be stored in program space.  The
 // ATmega168 has 16k of program space compared to 1k of RAM, so large
 // pieces of static data should be stored in program space.
@@ -14,11 +13,24 @@ const char welcome_line1[] PROGMEM = " Pololu";
 const char welcome_line2[] PROGMEM = "3\xf7 Robot";
 const char demo_name_line1[] PROGMEM = "Maze";
 const char demo_name_line2[] PROGMEM = "solver";
-
 // A couple of simple tunes, stored in program space.
 const char welcome[] PROGMEM = ">g32>>c32";
 const char go[] PROGMEM = "L16 cdegreg4";
 const char mario[] PROGMEM = "!T216 L4 e8e8r8e8r8c8egr<<grc.<g8r<e.aba#8ag6>e6>g6>a<f8g8r8ec8d8<b.";
+
+const char **NESW = {"North", "East", "South", "West"};
+//		      0        1       2        3
+
+struct Location {
+	int x; // The robot's current x position. 
+	int y; // The robot's current y position.
+	unsigned int d:2;
+		// Direction: 0 - North 1 - East 2 - South 3 - West mod 4
+		// 2 bits allocated for 0 - 3 range; may automatically compute modulo if leading bits are omitted.
+	int moveMemory [2][500];
+		// Saves movement memory based off x and y values. With this, the 3pi will remember where it has been on the Grid World and will be able to retrace its previous path. x location data will be stored at [0][i] and y location data will be stored at [1][i].
+		// TODO: Add function for recording these points.
+};
 
 // Initializes the 3pi, displays a welcome message, calibrates, and
 // plays the initial music.
