@@ -10,21 +10,23 @@
 
 #include <pololu/3pi.h> 
 
-
-unsigned int SPEED = 100;
+// sensors so that every method can use them
 unsigned int sensors[5];
 
+// Directional integers
 static int NORTH = 0;
 static int EAST = 1;
 static int SOUTH = 2;
 static int WEST = 3;
 
-unsigned int px = 0;
-unsigned int py = 0;
+// Position and direction of the robot
+unsigned int px = 0; // 'Pololu Y' - x position of the robot
+unsigned int py = 0; // 'Pololu Y' - y position of the robot
 unsigned int dir = NORTH; //START OFF BY GOING NORTH
 
-unsigned int MAX_SPEED = 60;
+unsigned int MAX_SPEED = 60; // MAX SPEED OF THE ROBOT
 
+// Init - ripped from Pololu docs
 void initialize() {
 	
 	unsigned int counter;
@@ -73,6 +75,7 @@ void initialize() {
 }
 
 
+// IGNORE THIS METHOD FOR NOW, BUT IT HAS SOME USEFUL CODE
 /*
 void gotoPoint(int x, int y) {
 	
@@ -116,15 +119,20 @@ void gotoPoint(int x, int y) {
 	}
 }*/
 
+// CHANGE THE DIRECTION OF THE ROBOT
 void changeDir(int d) {
 	
+	// If it's the same direction, ignore this function
 	if(dir = d) return;
 	int diff = d - dir;
 	if(diff < 0) diff = diff * -1;
 	
+	// If the difference between the two directions is equal to 2...
 	if(diff == 2) {
-		// rotate 180 degrees
+		//... rotate 180 degrees
 	} else {
+		// Otherwise get the current direction 
+		// and change based on which direction we want to move.
 		switch(dir) {
 			case NORTH:
 			if(d == EAST) // turn right
@@ -149,8 +157,9 @@ void changeDir(int d) {
 	
 }
 
+// Go to a specific point on the grid
 void gotoPoint(int x, int y) {
-
+	
 		int xdiff = x- px;
 		int ydiff = y- py;
 		int xdir = 0;
@@ -191,28 +200,28 @@ int foundIntersection() {
 	return 0;
 }
 
-
+// 'BOOLEAN' value to see if we've reached a point
+// Mostly just a failsafe if we need it
+// RETURN 1 if true;
 int atPoint(int x, int y) {
 	if(px == x && py == y) return 1;
 	else return 0;
 }
 
-
+// USE gotoPoint for the remaining methods
 int gotoIntersection(int x, int y) {
 	return 0;
 }
-
 int gotoCorner(int c) {
-	
 	// switch statement, gotoIntersection
 	return 0;
 }
-
 int gotoEdge(int e) {
 	return 0;
 }
 
-
+// Returns what type of segment we have
+// Probably will be obsolete.
 int hasSegment()
 {
 		if(sensors[1] < 100 && sensors[2] < 100 && sensors[3] < 100) {
@@ -227,6 +236,7 @@ int hasSegment()
 		}
 }
 
+// MAIN
 int main()
 {
 
