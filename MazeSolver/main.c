@@ -22,6 +22,7 @@
 // pieces of static data should be stored in program space.
 #include <avr/pgmspace.h>
 
+#include "bargraph.h"
 #include "maze-solve.h"
 
 // Introductory messages.  The "PROGMEM" identifier causes the data to
@@ -46,7 +47,8 @@ void initialize()
 	// sensors.  We use a value of 2000 for the timeout, which
 	// corresponds to 2000*0.4 us = 0.8 ms on our 20 MHz processor.
 	pololu_3pi_init(2000);
-
+	load_custom_characters(); // load the custom characters
+	
 	// Play welcome music and display a message
 	print_from_program_space(welcome_line1);
 	lcd_goto_xy(0,1);
@@ -115,6 +117,7 @@ void initialize()
 		clear();
 		print_long(position);
 		lcd_goto_xy(0,1);
+		display_readings(sensors);
 
 		delay_ms(100);
 	}
