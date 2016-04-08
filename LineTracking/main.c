@@ -16,7 +16,7 @@ const char demo_name_line2[] PROGMEM = "solver";
 // A couple of simple tunes, stored in program space.
 const char welcome[] PROGMEM = ">g32>>c32";
 const char go[] PROGMEM = "L16 cdegreg4";
-const char mario[] PROGMEM = "!T216 L4 e8e8r8e8r8c8egr<<grc.<g8r<e.aba#8ag6>e6>g6>a<f8g8r8ec8d8<b.";
+const char mario[] PROGMEM = "T216 L4 e8e8r8e8r8c8egr<<grc.<g8r<e.aba#8ag6>e6>g6>a<f8g8r8ec8d8<b.";
 
 const char **NESW = {"North", "East", "South", "West"};
 //		      0        1       2        3
