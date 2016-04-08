@@ -118,40 +118,60 @@ void gotoPoint(int x, int y) {
 		}
 	}
 }*/
+void turn(char dir)
+{
+	switch(dir)
+	{
+		case 'L':
+		// Turn left.
+		set_motors(-80,80);
+		delay_ms(200);
+		break;
+		case 'R':
+		// Turn right.
+		set_motors(80,-80);
+		delay_ms(200);
+		break;
+		case 'B':
+		// Turn around.
+		set_motors(80,-80);
+		delay_ms(400);
+		break;
+		case 'S':
+		// Don't do anything!
+		break;
+	}
+}
 
-// CHANGE THE DIRECTION OF THE ROBOT
+
 void changeDir(int d) {
 	
-	// If it's the same direction, ignore this function
 	if(dir = d) return;
 	int diff = d - dir;
 	if(diff < 0) diff = diff * -1;
 	
-	// If the difference between the two directions is equal to 2...
 	if(diff == 2) {
-		//... rotate 180 degrees
+		turn('B'); 
 	} else {
-		// Otherwise get the current direction 
-		// and change based on which direction we want to move.
 		switch(dir) {
 			case NORTH:
-			if(d == EAST) // turn right
-			if(d == WEST) // turn left
+			if(d == EAST) turn('R');// turn right
+			if(d == WEST) turn('L');// turn left
 			break;
 			
 			case SOUTH:
-			if(d == EAST) // turn left
-			if(d == WEST) // turn right
+			if(d == EAST) turn('L'); // turn left
+			if(d == WEST) turn('R'); // turn right
 			break;
 			
 			case EAST:
-			if(d == NORTH) // turn left
-			if(d == SOUTH) // turn right
+			if(d == NORTH) turn('L'); // turn left
+			if(d == SOUTH) turn('R'); // turn right
 			break;
 			
 			case WEST:
-			if(d == NORTH) // turn right
-			if(d == SOUTH) // turn left
+			if(d == NORTH) turn('R'); // turn right
+			if(d == SOUTH) turn('L'); // turn left
 		}
 	}
 	
