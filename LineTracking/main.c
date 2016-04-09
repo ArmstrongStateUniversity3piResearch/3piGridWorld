@@ -7,6 +7,14 @@
 #include <avr/pgmspace.h>
 #include "follow-segment.h"
 
+#define NORTH 0
+#define EAST 1
+#define SOUTH 2
+#define WEST 3
+// TODO implement user input with A, B, and C buttons to change this.
+#define MAX_X 5
+#define MAX_Y 5
+
 // Introductory messages.  The "PROGMEM" identifier causes the data to
 // go into program space.
 const char welcome_line1[] PROGMEM = " Pololu";
@@ -16,10 +24,12 @@ const char demo_name_line2[] PROGMEM = "solver";
 // A couple of simple tunes, stored in program space.
 const char welcome[] PROGMEM = ">g32>>c32";
 const char go[] PROGMEM = "L16 cdegreg4";
-const char mario[] PROGMEM = "T216 L4 e8e8r8e8r8c8egr<<grc.<g8r<e.aba#8ag6>e6>g6>a<f8g8r8ec8d8<b.";
+// const char mario[] PROGMEM = "T216 L4 e8e8r8e8r8c8egr<<grc.<g8r<e.aba#8ag6>e6>g6>a<f8g8r8ec8d8<b.";
+const char mario1[] PROGMEM = "T216 L8 eererce4g4r4<<g4r4";
+const char mario2[] PROGMEM = "T216 L8 c.4<gr4<e.4a4b4a#a4g6>e6>g6>a4<fgre4cd<b.4";
 
 const char **NESW = {"North", "East", "South", "West"};
-//		      0        1       2        3
+//					  0        1       2        3
 
 struct Location {
 	int x; // The robot's current x position. 
@@ -32,13 +42,22 @@ struct Location {
 		// TODO: Add function for recording these points.
 };
 
+struct Location 3PI;
+
 // Initializes the 3pi, displays a welcome message, calibrates, and
 // plays the initial music.
 void initialize() {
 	
+	// Robot MUST be placed at (0, 0) facing "north": the top edge of the Grid World.
+	3PI.x = 0;
+	3PI.y = 0;
+	3PI.d = 0;
+	
 	unsigned int counter;
+	unsigned int sensors[5];
 	
 	pololu_3pi_init(2000);
+	play_from_program_space(mario1);
 	
 	while(!button_is_pressed(BUTTON_B)) {
 		int bat = read_battery_millivolts();
@@ -48,6 +67,7 @@ void initialize() {
 		print("mV");
 		lcd_goto_xy(0, 1);
 		print("Press B");
+		play_from_program_space(mario2);
 		
 		delay_ms(100);
 	}
@@ -123,7 +143,9 @@ void gotoPoint(int x, int y) {
 			set_motors(max,max-power_difference);
 		}
 	}
-}*/
+}
+*/
+
 void turn(char dir)
 {
 	switch(dir)
@@ -152,33 +174,35 @@ void turn(char dir)
 
 void changeDir(int d) {
 	
-	if(dir = d) return;
-	int diff = d - dir;
+	if(3PI.d == d) return;
+	int diff = d - 3PI.d;
 	if(diff < 0) diff = diff * -1;
 	
 	if(diff == 2) {
 		turn('B'); 
 	} else {
-		switch(dir) {
+		switch(3PI.d) {
 			case NORTH:
-			if(d == EAST) turn('R');// turn right
-			if(d == WEST) turn('L');// turn left
-			break;
+				if(d == EAST) turn('R');// turn right
+				if(d == WEST) turn('L');// turn left
+				break;
 			
 			case SOUTH:
-			if(d == EAST) turn('L'); // turn left
-			if(d == WEST) turn('R'); // turn right
-			break;
+				if(d == EAST) turn('L'); // turn left
+				if(d == WEST) turn('R'); // turn right
+				break;
 			
 			case EAST:
-			if(d == NORTH) turn('L'); // turn left
-			if(d == SOUTH) turn('R'); // turn right
-			break;
+				if(d == NORTH) turn('L'); // turn left
+				if(d == SOUTH) turn('R'); // turn right
+				break;
 			
 			case WEST:
-			if(d == NORTH) turn('R'); // turn right
-			if(d == SOUTH) turn('L'); // turn left
+				if(d == NORTH) turn('R'); // turn right
+				if(d == SOUTH) turn('L'); // turn left
+				break;
 		}
+		3PI.d = d;
 	}
 	
 }
@@ -186,8 +210,8 @@ void changeDir(int d) {
 // Go to a specific point on the grid
 void gotoPoint(int x, int y) {
 	
-		int xdiff = x- px;
-		int ydiff = y- py;
+		int xdiff = x - 3PI.x;
+		int ydiff = y - 3PI.y;
 		int xdir = 0;
 		int ydir = 0;
 
@@ -197,14 +221,15 @@ void gotoPoint(int x, int y) {
 		else ydir = SOUTH;
 
 		changeDir(xdir);
-		while(px !=x) {
+		while(3PI.x != x) {
+			// PROBABLY HAVE TO MOVE changeX() AND changeY() INTO follow_segment()
 			follow_segment();
 			changeX();
 			// move forward
 		}
 
 		changeDir(ydir);
-		while(py !=y) {
+		while(3PI.y != y) {
 			follow_segment();
 			changeY();
 			// move forward
@@ -214,10 +239,14 @@ void gotoPoint(int x, int y) {
 
 void changeX() {
 	// based on current direction, change the x value
+	if(3PI.d == EAST) 3PI.x++;
+	else if(3PI.d == WEST) 3PI.x--;
 }
 
 void changeY() {
 	// based on current direction, change the y value;
+	if(3PI.d == NORTH) 3PI.y++;
+	else if(3PI.d == SOUTH) 3PI.y--;
 }
 
 int foundIntersection() {
@@ -228,20 +257,38 @@ int foundIntersection() {
 // Mostly just a failsafe if we need it
 // RETURN 1 if true;
 int atPoint(int x, int y) {
-	if(px == x && py == y) return 1;
+	if(3PI.x == x && 3PI.y == y) return 1;
 	else return 0;
 }
 
 // USE gotoPoint for the remaining methods
+// Boolean confirmation on intersection located.
 int gotoIntersection(int x, int y) {
+	gotoPoint(x, y);
+	if (3PI.x == x && 3PI.y == y) return 1;
 	return 0;
 }
+
 int gotoCorner(int c) {
-	// switch statement, gotoIntersection
-	return 0;
+	switch(c)
+	{
+		// 0 - 3 are corners around the Grid World going counterclockwise starting at (0, 0)
+		case 0: return gotoIntersection(0, 0);
+		case 1: return gotoIntersection(MAX_X, 0);
+		case 2: return gotoIntersection(MAX_X, MAX_Y);
+		case 3: return gotoIntersection(0, MAX_Y);
+	}
 }
+
 int gotoEdge(int e) {
-	return 0;
+	switch(e)
+	{
+		// 0 - 3 are edges/sides around the Grid World going counterclockwise starting at the bottom edge.
+		case 0: return gotoIntersection(0, 3PI.y);
+		case 1: return gotoIntersection(3PI.x, 0);
+		case 2: return gotoIntersection(MAX_X, 3PI.y);
+		case 3: return gotoIntersection(3PI.x, MAX_Y);
+	}
 }
 
 // Returns what type of segment we have
@@ -260,12 +307,16 @@ int hasSegment()
 		}
 }
 
+void print3PI(struct Location r)
+{
+	print("(%d, %d) facing %s", r.x, r.y, NESW[r.d]);
+}
+
 int main()
 {
 	// set up the 3pi
 	initialize();
 	
-	unsigned int sensors[5];
 	unsigned int position;
 	char turns[] = {'S', 'S', 'S', 'S', 'R', 'S', 'S', 'S', 'S'}; // basic turning test
 	int turnIndex = 0;
@@ -321,8 +372,3 @@ int main()
 // tab-width: 4 **
 // indent-tabs-mode: t **
 // end: **
-
-    Status API Training Shop Blog About 
-
-    © 2016 GitHub, Inc. Terms Privacy Security Contact Help 
-
