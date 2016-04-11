@@ -37,21 +37,21 @@ struct Location {
 	unsigned int d:2;
 		// Direction: 0 - North 1 - East 2 - South 3 - West mod 4
 		// 2 bits allocated for 0 - 3 range; may automatically compute modulo if leading bits are omitted.
-	int moveMemory [2][500];
+	//int moveMemory [2][500]; giving error with 500
 		// Saves movement memory based off x and y values. With this, the 3pi will remember where it has been on the Grid World and will be able to retrace its previous path. x location data will be stored at [0][i] and y location data will be stored at [1][i].
 		// TODO: Add function for recording these points.
 };
 
-struct Location 3PI;
+struct Location r3PI;
 
 // Initializes the 3pi, displays a welcome message, calibrates, and
 // plays the initial music.
 void initialize() {
 	
 	// Robot MUST be placed at (0, 0) facing "north": the top edge of the Grid World.
-	3PI.x = 0;
-	3PI.y = 0;
-	3PI.d = 0;
+	r3PI.x = 0;
+	r3PI.y = 0;
+	r3PI.d = 0;
 	
 	unsigned int counter;
 	unsigned int sensors[5];
@@ -174,7 +174,7 @@ void turn(char dir)
 
 void changeDir(int d) {
 	
-	if(3PI.d == d) return;
+	if(r3PI.d == d) return;
 	int diff = d - 3PI.d;
 	if(diff < 0) diff = diff * -1;
 	
@@ -202,7 +202,7 @@ void changeDir(int d) {
 				if(d == SOUTH) turn('L'); // turn left
 				break;
 		}
-		3PI.d = d;
+		r3PI.d = d;
 	}
 	
 }
@@ -210,8 +210,8 @@ void changeDir(int d) {
 // Go to a specific point on the grid
 void gotoPoint(int x, int y) {
 	
-		int xdiff = x - 3PI.x;
-		int ydiff = y - 3PI.y;
+		int xdiff = x - r3PI.x;
+		int ydiff = y - r3PI.y;
 		int xdir = 0;
 		int ydir = 0;
 
@@ -221,7 +221,7 @@ void gotoPoint(int x, int y) {
 		else ydir = SOUTH;
 
 		changeDir(xdir);
-		while(3PI.x != x) {
+		while(r3PI.x != x) {
 			// PROBABLY HAVE TO MOVE changeX() AND changeY() INTO follow_segment()
 			follow_segment();
 			changeX();
@@ -229,7 +229,7 @@ void gotoPoint(int x, int y) {
 		}
 
 		changeDir(ydir);
-		while(3PI.y != y) {
+		while(r3PI.y != y) {
 			follow_segment();
 			changeY();
 			// move forward
@@ -239,14 +239,14 @@ void gotoPoint(int x, int y) {
 
 void changeX() {
 	// based on current direction, change the x value
-	if(3PI.d == EAST) 3PI.x++;
-	else if(3PI.d == WEST) 3PI.x--;
+	if(r3PI.d == EAST) 3PI.x++;
+	else if(r3PI.d == WEST) 3PI.x--;
 }
 
 void changeY() {
 	// based on current direction, change the y value;
-	if(3PI.d == NORTH) 3PI.y++;
-	else if(3PI.d == SOUTH) 3PI.y--;
+	if(r3PI.d == NORTH) 3PI.y++;
+	else if(r3PI.d == SOUTH) 3PI.y--;
 }
 
 int foundIntersection() {
@@ -257,7 +257,7 @@ int foundIntersection() {
 // Mostly just a failsafe if we need it
 // RETURN 1 if true;
 int atPoint(int x, int y) {
-	if(3PI.x == x && 3PI.y == y) return 1;
+	if(r3PI.x == x && r3PI.y == y) return 1;
 	else return 0;
 }
 
@@ -265,7 +265,7 @@ int atPoint(int x, int y) {
 // Boolean confirmation on intersection located.
 int gotoIntersection(int x, int y) {
 	gotoPoint(x, y);
-	if (3PI.x == x && 3PI.y == y) return 1;
+	if (r3PI.x == x && r3PI.y == y) return 1;
 	return 0;
 }
 
@@ -284,10 +284,10 @@ int gotoEdge(int e) {
 	switch(e)
 	{
 		// 0 - 3 are edges/sides around the Grid World going counterclockwise starting at the bottom edge.
-		case 0: return gotoIntersection(0, 3PI.y);
-		case 1: return gotoIntersection(3PI.x, 0);
-		case 2: return gotoIntersection(MAX_X, 3PI.y);
-		case 3: return gotoIntersection(3PI.x, MAX_Y);
+		case 0: return gotoIntersection(0, r3PI.y);
+		case 1: return gotoIntersection(r3PI.x, 0);
+		case 2: return gotoIntersection(MAX_X, r3PI.y);
+		case 3: return gotoIntersection(r3PI.x, MAX_Y);
 	}
 }
 
