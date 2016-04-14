@@ -51,6 +51,8 @@ Robot initial position at (0, 0)
 Desired Robot goal position at intersection (2, 3)
 Planner to generate path for the robot to take.
 
+The most common scenario the 3pi can find itself in is a simple "Go-to Point" movement on a Grid World, with a point consisting of one x value and one y value. As an example, a Grid World with a length of 5 and width of 5 arbitrary units would contain points from (0, 0) to (4, 4) due to zero indexing. A desired point can be given using the console prompt and the A, B, and C buttons. The console will display a number starting at zero, with the A button decrementing this number, the C button incrementing this number, and the B button confirming this number. This will be done twice, once for the x value and once for the y value. If the desired point is located at (2, 3), the 3pi will travel along the x-axis until its current x value is 2. Afterwards, the 3pi will travel along the y-axis until its current y value is 3. These values are incremented when the 3pi robot encounters an intersection detected by its sensors. When the 3pi robot's x and y values are equal to the desired point, the robot will await its next instructions from there.
+
 Additional Concentrations:
 - how to specify/denote a robot's orientation
 - a corollary to that: the need to specify rotation primitives [0, 90/-90, 180, 360 degrees]
