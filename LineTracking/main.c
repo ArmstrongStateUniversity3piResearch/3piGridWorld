@@ -28,24 +28,25 @@ const char go[] PROGMEM = "L16 cdegreg4";
 const char mario1[] PROGMEM = "T216 L8 eererce4g4r4<<g4r4";
 const char mario2[] PROGMEM = "T216 L8 c.4<gr4<e.4a4b4a#a4g6>e6>g6>a4<fgre4cd<b.4";
 
-const char **NESW = {"North", "East", "South", "West"};
+const char *NESW[] = {"North", "East", "South", "West"};
 //					  0        1       2        3
 
 struct Location {
-	int x; // The robot's current x position. 
+	int x; // The robot's current x position.
 	int y; // The robot's current y position.
 	unsigned int d:2;
-		// Direction: 0 - North 1 - East 2 - South 3 - West mod 4
-		// 2 bits allocated for 0 - 3 range; may automatically compute modulo if leading bits are omitted.
+	// Direction: 0 - North 1 - East 2 - South 3 - West mod 4
+	// 2 bits allocated for 0 - 3 range; may automatically compute modulo if leading bits are omitted.
 	//int moveMemory [2][500]; giving error with 500
-		// Saves movement memory based off x and y values. With this, the 3pi will remember where it has been on the Grid World and will be able to retrace its previous path. x location data will be stored at [0][i] and y location data will be stored at [1][i].
-		// TODO: Add function for recording these points.
+	// Saves movement memory based off x and y values. With this, the 3pi will remember where it has been on the Grid World and will be able to retrace its previous path. x location data will be stored at [0][i] and y location data will be stored at [1][i].
+	// TODO: Add function for recording these points.
 };
 
 struct Location r3PI;
 
 // Initializes the 3pi, displays a welcome message, calibrates, and
 // plays the initial music.
+unsigned int sensors[5];
 void initialize() {
 	
 	// Robot MUST be placed at (0, 0) facing "north": the top edge of the Grid World.
@@ -54,10 +55,10 @@ void initialize() {
 	r3PI.d = 0;
 	
 	unsigned int counter;
-	unsigned int sensors[5];
 	
 	pololu_3pi_init(2000);
 	play_from_program_space(mario1);
+	// while(is_playing());
 	
 	while(!button_is_pressed(BUTTON_B)) {
 		int bat = read_battery_millivolts();
@@ -67,7 +68,8 @@ void initialize() {
 		print("mV");
 		lcd_goto_xy(0, 1);
 		print("Press B");
-		play_from_program_space(mario2);
+		// play_from_program_space(mario1);
+		// while (is_playing());
 		
 		delay_ms(100);
 	}
@@ -78,7 +80,7 @@ void initialize() {
 	for(counter=0;counter<80;counter++) {
 		if(counter <20 || counter >=60)	{
 			set_motors(40, -40);
-		} else {
+			} else {
 			set_motors(-40, 40);
 		}
 		
@@ -104,45 +106,45 @@ void initialize() {
 // IGNORE THIS METHOD FOR NOW, BUT IT HAS SOME USEFUL CODE
 /*
 void gotoPoint(int x, int y) {
-	
-	int last_proportional = 0;
-	long integral=0; 
-	
-	// IF WE AREN'T AT THE POINT (BOOL VALUE OF 0)
-	// THEN WE WANT TO FOLLOW AN ALGORITHM THAT WILL
-	// BRING US TO THAT POINT
-	
-	while(atPoint(x, y) != 1) {	
-				
-		if(hasSegment() == 1) {
-			break;
-		} else if (hasSegment() == 2) {
-			break;
-		} else {
-			
-			// THIS IS A DIRECT RIP OF followSegment()
-			// FROM followSegment.c
-			// - RYAN
-			unsigned int sensors[5];
-			unsigned int position = read_line(sensors,IR_EMITTERS_ON);
-			int proportional = ((int)position) - 2000;
-			int derivative = proportional - last_proportional;
-			integral += proportional;
-			last_proportional = proportional;
-			int power_difference = proportional/20 + integral/10000 + derivative*3/2;
-			const int max = MAX_SPEED;
-			
-			if(power_difference > max)
-			power_difference = max;
-			if(power_difference < -max)
-			power_difference = -max;
-			
-			if(power_difference < 0)
-			set_motors(max+power_difference,max);
-			else
-			set_motors(max,max-power_difference);
-		}
-	}
+
+int last_proportional = 0;
+long integral=0;
+
+// IF WE AREN'T AT THE POINT (BOOL VALUE OF 0)
+// THEN WE WANT TO FOLLOW AN ALGORITHM THAT WILL
+// BRING US TO THAT POINT
+
+while(atPoint(x, y) != 1) {
+
+if(hasSegment() == 1) {
+break;
+} else if (hasSegment() == 2) {
+break;
+} else {
+
+// THIS IS A DIRECT RIP OF followSegment()
+// FROM followSegment.c
+// - RYAN
+unsigned int sensors[5];
+unsigned int position = read_line(sensors,IR_EMITTERS_ON);
+int proportional = ((int)position) - 2000;
+int derivative = proportional - last_proportional;
+integral += proportional;
+last_proportional = proportional;
+int power_difference = proportional/20 + integral/10000 + derivative*3/2;
+const int max = MAX_SPEED;
+
+if(power_difference > max)
+power_difference = max;
+if(power_difference < -max)
+power_difference = -max;
+
+if(power_difference < 0)
+set_motors(max+power_difference,max);
+else
+set_motors(max,max-power_difference);
+}
+}
 }
 */
 
@@ -154,16 +156,19 @@ void turn(char dir)
 		// Turn left.
 		set_motors(-80,80);
 		delay_ms(200);
+		set_motors(0, 0);
 		break;
 		case 'R':
 		// Turn right.
 		set_motors(80,-80);
 		delay_ms(200);
+		set_motors(0, 0);
 		break;
 		case 'B':
 		// Turn around.
 		set_motors(80,-80);
 		delay_ms(400);
+		set_motors(0, 0);
 		break;
 		case 'S':
 		// Don't do anything!
@@ -171,82 +176,132 @@ void turn(char dir)
 	}
 }
 
-
 void changeDir(int d) {
 	
 	if(r3PI.d == d) return;
-	int diff = d - 3PI.d;
+	int diff = d - r3PI.d;
 	if(diff < 0) diff = diff * -1;
 	
 	if(diff == 2) {
-		turn('B'); 
-	} else {
-		switch(3PI.d) {
+		turn('B');
+		} else {
+		switch(r3PI.d) {
 			case NORTH:
-				if(d == EAST) turn('R');// turn right
-				if(d == WEST) turn('L');// turn left
-				break;
+			if(d == EAST) turn('R');// turn right
+			if(d == WEST) turn('L');// turn left
+			break;
 			
 			case SOUTH:
-				if(d == EAST) turn('L'); // turn left
-				if(d == WEST) turn('R'); // turn right
-				break;
+			if(d == EAST) turn('L'); // turn left
+			if(d == WEST) turn('R'); // turn right
+			break;
 			
 			case EAST:
-				if(d == NORTH) turn('L'); // turn left
-				if(d == SOUTH) turn('R'); // turn right
-				break;
+			if(d == NORTH) turn('L'); // turn left
+			if(d == SOUTH) turn('R'); // turn right
+			break;
 			
 			case WEST:
-				if(d == NORTH) turn('R'); // turn right
-				if(d == SOUTH) turn('L'); // turn left
-				break;
+			if(d == NORTH) turn('R'); // turn right
+			if(d == SOUTH) turn('L'); // turn left
+			break;
 		}
-		r3PI.d = d;
 	}
-	
+	r3PI.d = d;
 }
 
 // Go to a specific point on the grid
+void changeX();
+void changeY();
+void print3PI(struct Location);
 void gotoPoint(int x, int y) {
 	
-		int xdiff = x - r3PI.x;
-		int ydiff = y - r3PI.y;
-		int xdir = 0;
-		int ydir = 0;
+	// Already at point
+	if (r3PI.x == x && r3PI.y == y)
+	{
+		set_motors(0, 0);
+		return;
+	}
+	
+	int xdiff = x - r3PI.x;
+	int ydiff = y - r3PI.y;
+	int xdir = 0;
+	int ydir = 0;
 
-		if(xdiff > 0) xdir = EAST;
+	if(xdiff > 0) xdir = EAST;
 		else xdir = WEST;
-		if(ydiff > 0) ydir = NORTH;
+	if(ydiff > 0) ydir = NORTH;
 		else ydir = SOUTH;
-
+	
+	// Change direction towards x coordinate if not at x coordinate
+	if (r3PI.x != x)
+	{
 		changeDir(xdir);
-		while(r3PI.x != x) {
-			// PROBABLY HAVE TO MOVE changeX() AND changeY() INTO follow_segment()
-			follow_segment();
-			changeX();
-			// move forward
-		}
+		set_motors(50,50);
+		delay_ms(50);
+		set_motors(40,40);
+		delay_ms(200);
+	}
+	
+	// Navigate towards x coordinate
+	while(r3PI.x != x) {
+		// PROBABLY HAVE TO MOVE changeX() AND changeY() INTO follow_segment()
+		follow_segment();
+		
+		// Drive straight a bit.  This helps us in case we entered the
+		// intersection at an angle.
+		// Note that we are slowing down - this prevents the robot
+		// from tipping forward too much.
+		set_motors(50,50);
+		delay_ms(50);
+		
+		// Drive straight a bit more - this is enough to line up our
+		// wheels with the intersection.
+		set_motors(40,40);
+		delay_ms(200);
+		
+		changeX();
+		// move forward
+	}
 
+	// Change direction towards y coordinate if not at y coordinate
+	if (r3PI.y != y)
+	{
 		changeDir(ydir);
-		while(r3PI.y != y) {
-			follow_segment();
-			changeY();
-			// move forward
-		}
-
+	}
+	
+	// Navigate towards y coordinate
+	while(r3PI.y != y) {
+		follow_segment();
+		// Drive straight a bit.  This helps us in case we entered the
+		// intersection at an angle.
+		// Note that we are slowing down - this prevents the robot
+		// from tipping forward too much.
+		set_motors(50,50);
+		delay_ms(50);
+		
+		// Drive straight a bit more - this is enough to line up our
+		// wheels with the intersection.
+		set_motors(40,40);
+		delay_ms(200);
+		
+		changeY();
+		// move forward
+	}
+	
+	set_motors(0, 0);
 }
 
 void changeX() {
 	// based on current direction, change the x value
-	if(r3PI.d == EAST) 3PI.x++;
-	else if(r3PI.d == WEST) 3PI.x--;
+	if(r3PI.d == EAST) r3PI.x++;
+	else if(r3PI.d == WEST) r3PI.x--;
 }
 
 void changeY() {
 	// based on current direction, change the y value;
-	if(r3PI.d == NORTH) 3PI.y++;
-	else if(r3PI.d == SOUTH) 3PI.y--;
+	if(r3PI.d == NORTH) r3PI.y++;
+	else if(r3PI.d == SOUTH) r3PI.y--;
 }
 
 int foundIntersection() {
@@ -295,74 +350,149 @@ int gotoEdge(int e) {
 // Probably will be obsolete.
 int hasSegment()
 {
-		if(sensors[1] < 100 && sensors[2] < 100 && sensors[3] < 100) {
-			return 2; // HAS NOTHING
-			print("NO LN");
+	if(sensors[1] < 100 && sensors[2] < 100 && sensors[3] < 100) {
+		return 2; // HAS NOTHING
+		print("NO LN");
 		} else if(sensors[0] > 200 || sensors[4] > 200) {
-			return 1; // HAS INTERSECTION
-			print("INTER");
+		return 1; // HAS INTERSECTION
+		print("INTER");
 		} else {
-			return 0; // HAS SEGMENT
-			print("HAS SEG");
-		}
+		return 0; // HAS SEGMENT
+		print("HAS SEG");
+	}
 }
 
 void print3PI(struct Location r)
 {
-	print("(%d, %d) facing %s", r.x, r.y, NESW[r.d]);
+	// print("(%d, %d) facing %s", r.x, r.y, NESW[r.d]);
+	clear();
+	
+	print("(");
+	print_long(r.x);
+	print(", ");
+	print_long(r.y);
+	print(")");
+	lcd_goto_xy(0, 1);
+	print("Facing ");
+	print(NESW[r.d]);
 }
 
 int main()
 {
+	// Specify start and goto location
+	int startX = 0;
+	int startY = 0;
+	int startDir = 0;
+	int goX = 0;
+	int goY = 0;
+	
+	// Welcome message
+	print("Hi");
+	delay_ms(1000);
+	
+	// Select start location
+	while (!button_is_pressed(BUTTON_A))
+	{
+		clear();
+		
+		print("Start loc: ");
+		
+		lcd_goto_xy(0, 1);
+		
+		print_long(startX);
+		print(" ");
+		print_long(startY);
+		
+		if (button_is_pressed(BUTTON_B))
+			startX < 5 ? startX++ : (startX = 0);
+		if (button_is_pressed(BUTTON_C))
+			startY < 5 ? startY++ : (startY = 0);
+		
+		delay_ms(100);
+	}
+	wait_for_button_release(BUTTON_A);
+	delay_ms(100);
+	
+	// Select start direction
+	while (!button_is_pressed(BUTTON_A))
+	{
+		clear();
+		
+		print("Start Dir: ");
+		
+		lcd_goto_xy(0, 1);
+		
+		print_long(startDir);
+		
+		if (button_is_pressed(BUTTON_B))
+		startDir < 3 ? startDir++ : (startDir = 0);
+		
+		delay_ms(100);
+	}
+	wait_for_button_release(BUTTON_A);
+	delay_ms(100);
+	
+	// Select goto location
+	while (!button_is_pressed(BUTTON_A))
+	{
+		clear();
+		
+		print("Go loc: ");
+		
+		lcd_goto_xy(0, 1);
+		
+		print_long(goX);
+		print(" ");
+		print_long(goY);
+		
+		delay_ms(100);
+		
+		if (button_is_pressed(BUTTON_B))
+			goX < 5 ? goX++ : (goX = 0);
+		if (button_is_pressed(BUTTON_C))
+			goY < 5 ? goY++ : (goY = 0);
+		
+		delay_ms(100);
+	}
+	wait_for_button_release(BUTTON_A);
+	delay_ms(100);
+	
 	// set up the 3pi
 	initialize();
 	
-	unsigned int position;
-	char turns[] = {'S', 'S', 'S', 'S', 'R', 'S', 'S', 'S', 'S'}; // basic turning test
-	int turnIndex = 0;
+	r3PI.x = startX;
+	r3PI.y = startY;
+	r3PI.d = startDir;
+	
 	while (1)
 	{
-		follow_segment();
+		// follow_segment();
 		
 		// Drive straight a bit.  This helps us in case we entered the
 		// intersection at an angle.
 		// Note that we are slowing down - this prevents the robot
 		// from tipping forward too much.
-		set_motors(50,50);
-		delay_ms(50);
+		// set_motors(50,50);
+		// delay_ms(50);
 
 		// Now read the sensors and check the intersection type.
-		read_line(sensors,IR_EMITTERS_ON);
+		// read_line(sensors,IR_EMITTERS_ON);
 		
 		// Check for left and right exits
 		
-				
+		
 		// Drive straight a bit more - this is enough to line up our
 		// wheels with the intersection.
-		set_motors(40,40);
-		delay_ms(200);
+		// set_motors(40,40);
+		// delay_ms(200);
 
 		// Check for a straight exit.
-		read_line(sensors,IR_EMITTERS_ON);
+		// read_line(sensors,IR_EMITTERS_ON);
 		// if(sensors[1] > 200 || sensors[2] > 200 || sensors[3] > 200)
 		
-		
-		// If the maze has been solved, we can follow the existing
-		// path.  Otherwise, we need to learn the solution.
-		//unsigned char dir = select_turn(found_left, found_straight, found_right);
-
-		// Make the turn indicated by the path.
-		//turn(dir);
-		
-		if (turnIndex < 8)
-			turn(turns[turnIndex++]);
-		else
-		{
-			set_motors(0, 0);
-			while(!button_is_pressed(BUTTON_B));
-			turnIndex = 0;
-			delay_ms(1000);
-		}
+		gotoPoint(goX, goY);
+		print3PI(r3PI);
+		while(1);
 	}
 }
 
