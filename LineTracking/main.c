@@ -28,7 +28,7 @@ const char go[] PROGMEM = "L16 cdegreg4";
 const char mario1[] PROGMEM = "T216 L8 eererce4g4r4<<g4r4";
 const char mario2[] PROGMEM = "T216 L8 c.4<gr4<e.4a4b4a#a4g6>e6>g6>a4<fgre4cd<b.4";
 
-const char *NESW[] = {"North", "East", "South", "West"};
+const char **NESW = {"North", "East", "South", "West"};
 //					  0        1       2        3
 
 struct Location {
@@ -37,7 +37,7 @@ struct Location {
 	unsigned int d:2;
 	// Direction: 0 - North 1 - East 2 - South 3 - West mod 4
 	// 2 bits allocated for 0 - 3 range; may automatically compute modulo if leading bits are omitted.
-	//int moveMemory [2][500]; giving error with 500
+	// int moveMemory [2][500]; giving error with 500
 	// Saves movement memory based off x and y values. With this, the 3pi will remember where it has been on the Grid World and will be able to retrace its previous path. x location data will be stored at [0][i] and y location data will be stored at [1][i].
 	// TODO: Add function for recording these points.
 };
@@ -80,7 +80,7 @@ void initialize() {
 	for(counter=0;counter<80;counter++) {
 		if(counter <20 || counter >=60)	{
 			set_motors(40, -40);
-			} else {
+		} else {
 			set_motors(-40, 40);
 		}
 		
@@ -188,36 +188,59 @@ void changeDir(int d) {
 	
 	if(diff == 2) {
 		turn('B');
-		} else {
-			switch(r3PI.d) {
-					case NORTH:
-						if(d == EAST) turn('R');// turn right
-						if(d == WEST) turn('L');// turn left
-						break;
+	} else {
+		switch(r3PI.d) {
+			case NORTH:
+				if(d == EAST) turn('R');// turn right
+				if(d == WEST) turn('L');// turn left
+				break;
 			
-					case SOUTH:
-						if(d == EAST) turn('L'); // turn left
-						if(d == WEST) turn('R'); // turn right
-						break;
+			case SOUTH:
+				if(d == EAST) turn('L'); // turn left
+				if(d == WEST) turn('R'); // turn right
+				break;
 			
-					case EAST:
-						if(d == NORTH) turn('L'); // turn left
-						if(d == SOUTH) turn('R'); // turn right
-						break;
+			case EAST:
+				if(d == NORTH) turn('L'); // turn left
+				if(d == SOUTH) turn('R'); // turn right
+				break;
 			
-					case WEST:
-						if(d == NORTH) turn('R'); // turn right
-						if(d == SOUTH) turn('L'); // turn left
-						break;
-			}
+			case WEST:
+				if(d == NORTH) turn('R'); // turn right
+				if(d == SOUTH) turn('L'); // turn left
+				break;
+		}
 	}
 	r3PI.d = d;
 }
 
-// Go to a specific point on the grid
-void changeX();
-void changeY();
-void print3PI(struct Location);
+void changeX() {
+	// based on current direction, change the x value
+	if(r3PI.d == EAST) r3PI.x++;
+	else if(r3PI.d == WEST) r3PI.x--;
+}
+
+void changeY() {
+	// based on current direction, change the y value;
+	if(r3PI.d == NORTH) r3PI.y++;
+	else if(r3PI.d == SOUTH) r3PI.y--;
+}
+
+void print3PI(struct Location r)
+{
+	// print("(%d, %d) facing %s", r.x, r.y, NESW[r.d]);
+	clear();
+	
+	print("(");
+	print_long(r.x);
+	print(", ");
+	print_long(r.y);
+	print(")");
+	lcd_goto_xy(0, 1);
+	print("Facing ");
+	print(NESW[r.d]);
+}
+
 void gotoPoint(int x, int y) {
 	
 	// Already at point
@@ -233,9 +256,10 @@ void gotoPoint(int x, int y) {
 	int ydir = 0;
 
 	if(xdiff > 0) xdir = EAST;
-		else xdir = WEST;
+	else xdir = WEST;
+	
 	if(ydiff > 0) ydir = NORTH;
-		else ydir = SOUTH;
+	else ydir = SOUTH;
 	
 	// Change direction towards x coordinate if not at x coordinate
 	if (r3PI.x != x)
@@ -296,18 +320,6 @@ void gotoPoint(int x, int y) {
 	set_motors(0, 0);
 }
 
-void changeX() {
-	// based on current direction, change the x value
-	if(r3PI.d == EAST) r3PI.x++;
-	else if(r3PI.d == WEST) r3PI.x--;
-}
-
-void changeY() {
-	// based on current direction, change the y value;
-	if(r3PI.d == NORTH) r3PI.y++;
-	else if(r3PI.d == SOUTH) r3PI.y--;
-}
-
 int foundIntersection() {
 	return 0;
 }
@@ -357,28 +369,13 @@ int hasSegment()
 	if(sensors[1] < 100 && sensors[2] < 100 && sensors[3] < 100) {
 		return 2; // HAS NOTHING
 		print("NO LN");
-		} else if(sensors[0] > 200 || sensors[4] > 200) {
+	} else if(sensors[0] > 200 || sensors[4] > 200) {
 		return 1; // HAS INTERSECTION
 		print("INTER");
-		} else {
+	} else {
 		return 0; // HAS SEGMENT
 		print("HAS SEG");
 	}
-}
-
-void print3PI(struct Location r)
-{
-	// print("(%d, %d) facing %s", r.x, r.y, NESW[r.d]);
-	clear();
-	
-	print("(");
-	print_long(r.x);
-	print(", ");
-	print_long(r.y);
-	print(")");
-	lcd_goto_xy(0, 1);
-	print("Facing ");
-	print(NESW[r.d]);
 }
 
 int main()
@@ -429,7 +426,7 @@ int main()
 		print_long(startDir);
 		
 		if (button_is_pressed(BUTTON_B))
-		startDir < 3 ? startDir++ : (startDir = 0);
+			startDir < 3 ? startDir++ : (startDir = 0);
 		
 		delay_ms(100);
 	}
