@@ -102,53 +102,6 @@ void initialize() {
 	clear();
 }
 
-
-
-// IGNORE THIS METHOD FOR NOW, BUT IT HAS SOME USEFUL CODE
-/*
-void gotoPoint(int x, int y) {
-	
-	int last_proportional = 0;
-	long integral=0; 
-	
-	// IF WE AREN'T AT THE POINT (BOOL VALUE OF 0)
-	// THEN WE WANT TO FOLLOW AN ALGORITHM THAT WILL
-	// BRING US TO THAT POINT
-	
-	while(atPoint(x, y) != 1) {	
-				
-		if(hasSegment() == 1) {
-			break;
-		} else if (hasSegment() == 2) {
-			break;
-		} else {
-			
-			// THIS IS A DIRECT RIP OF followSegment()
-			// FROM followSegment.c
-			// - RYAN
-			unsigned int sensors[5];
-			unsigned int position = read_line(sensors,IR_EMITTERS_ON);
-			int proportional = ((int)position) - 2000;
-			int derivative = proportional - last_proportional;
-			integral += proportional;
-			last_proportional = proportional;
-			int power_difference = proportional/20 + integral/10000 + derivative*3/2;
-			const int max = MAX_SPEED;
-			
-			if(power_difference > max)
-			power_difference = max;
-			if(power_difference < -max)
-			power_difference = -max;
-			
-			if(power_difference < 0)
-			set_motors(max+power_difference,max);
-			else
-			set_motors(max,max-power_difference);
-		}
-	}
-}
-*/
-
 void turn(char dir)
 {
 	switch(dir)
@@ -375,6 +328,17 @@ int hasSegment()
 	} else {
 		return 0; // HAS SEGMENT
 		print("HAS SEG");
+	}
+}
+
+int move(int dir, int units)
+{
+	switch(dir)
+	{
+		case 0: return gotoPoint(r3PI.x, r3PI.y + units);
+		case 1: return gotoPoint(r3PI.x + units, r3PI.y);
+		case 2: return gotoPoint(r3PI.x, r3PI.y - units);
+		case 3: return gotoPoint(r3PI.x - units, r3PI.y);
 	}
 }
 
