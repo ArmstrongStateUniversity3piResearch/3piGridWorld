@@ -28,7 +28,7 @@ const char go[] PROGMEM = "L16 cdegreg4";
 const char mario1[] PROGMEM = "T216 L8 eererce4g4r4<<g4r4";
 const char mario2[] PROGMEM = "T216 L8 c.4<gr4<e.4a4b4a#a4g6>e6>g6>a4<fgre4cd<b.4";
 
-const char **NESW = {"North", "East", "South", "West"};
+const char *NESW[] = {"North", "East", "South", "West"};
 //					  0        1       2        3
 
 struct Location {
@@ -57,7 +57,7 @@ void initialize() {
 	unsigned int counter;
 	
 	pololu_3pi_init(2000);
-	play_from_program_space(mario1);
+	// play_from_program_space(mario1);
 	// while(is_playing());
 	
 	while(!button_is_pressed(BUTTON_B)) {
@@ -195,6 +195,11 @@ void print3PI(struct Location r)
 }
 
 void gotoPoint(int x, int y) {
+	// Tracks if robot has moved from its initial placement on the grid
+	// Moves robot ahead a little from initial placement after its first turn (if any)
+	// Ensures robot does not read initial intersection it is placed on as next intersection detected
+	// Robot should be able to navigate without need for more delays at other intersections
+	static int isMoved = 0;
 	
 	// Already at point
 	if (r3PI.x == x && r3PI.y == y)
@@ -218,10 +223,14 @@ void gotoPoint(int x, int y) {
 	if (r3PI.x != x)
 	{
 		changeDir(xdir);
-		set_motors(50,50);
-		delay_ms(50);
-		set_motors(40,40);
-		delay_ms(200);
+		
+		if (isMoved++ == 0)
+		{
+			set_motors(50,50);
+			delay_ms(50);
+			//set_motors(40,40);
+			//delay_ms(200);
+		}
 	}
 	
 	// Navigate towards x coordinate
@@ -249,6 +258,13 @@ void gotoPoint(int x, int y) {
 	if (r3PI.y != y)
 	{
 		changeDir(ydir);
+		if (isMoved++ == 0)
+		{
+			set_motors(50,50);
+			delay_ms(50);
+			//set_motors(40,40);
+			//delay_ms(200);
+		}
 	}
 	
 	// Navigate towards y coordinate
@@ -335,21 +351,21 @@ int move(int dir, int units)
 {
 	switch(dir)
 	{
-		case 0: return gotoPoint(r3PI.x, r3PI.y + units);
-		case 1: return gotoPoint(r3PI.x + units, r3PI.y);
-		case 2: return gotoPoint(r3PI.x, r3PI.y - units);
-		case 3: return gotoPoint(r3PI.x - units, r3PI.y);
+		case 0: gotoPoint(r3PI.x, r3PI.y + units);
+		case 1: gotoPoint(r3PI.x + units, r3PI.y);
+		case 2: gotoPoint(r3PI.x, r3PI.y - units);
+		case 3: gotoPoint(r3PI.x - units, r3PI.y);
 	}
 }
 
 int main()
 {
-	// Specify start and goto location
-	int startX = 0;
-	int startY = 0;
-	int startDir = 0;
-	int goX = 0;
-	int goY = 0;
+	// set up the 3pi
+	initialize();
+	
+	// goto location
+	int gotoX = 4;
+	int gotoY = 2;
 	
 	// Welcome message
 	print("Hi");
@@ -364,14 +380,14 @@ int main()
 		
 		lcd_goto_xy(0, 1);
 		
-		print_long(startX);
+		print_long(r3PI.x);
 		print(" ");
-		print_long(startY);
+		print_long(r3PI.y);
 		
 		if (button_is_pressed(BUTTON_B))
-			startX < 5 ? startX++ : (startX = 0);
+		r3PI.x < 5 ? r3PI.x++ : (r3PI.x = 0);
 		if (button_is_pressed(BUTTON_C))
-			startY < 5 ? startY++ : (startY = 0);
+		r3PI.y < 5 ? r3PI.y++ : (r3PI.y = 0);
 		
 		delay_ms(100);
 	}
@@ -387,10 +403,10 @@ int main()
 		
 		lcd_goto_xy(0, 1);
 		
-		print_long(startDir);
+		print(NESW[r3PI.d]);
 		
 		if (button_is_pressed(BUTTON_B))
-			startDir < 3 ? startDir++ : (startDir = 0);
+		r3PI.d < 3 ? r3PI.d++ : (r3PI.d = 0);
 		
 		delay_ms(100);
 	}
@@ -406,59 +422,32 @@ int main()
 		
 		lcd_goto_xy(0, 1);
 		
-		print_long(goX);
+		print_long(gotoX); // x-coordinate
 		print(" ");
-		print_long(goY);
+		print_long(gotoY); // y-coordinate
 		
 		delay_ms(100);
 		
 		if (button_is_pressed(BUTTON_B))
-			goX < 5 ? goX++ : (goX = 0);
+		gotoX < 5 ? gotoX++ : (gotoX = 0);
 		if (button_is_pressed(BUTTON_C))
-			goY < 5 ? goY++ : (goY = 0);
+		gotoY < 5 ? gotoY++ : (gotoY = 0);
 		
 		delay_ms(100);
 	}
 	wait_for_button_release(BUTTON_A);
-	delay_ms(100);
+	delay_ms(1000);
 	
-	// set up the 3pi
-	initialize();
+	gotoPoint(gotoX, gotoY);
+	print3PI(r3PI);
 	
-	r3PI.x = startX;
-	r3PI.y = startY;
-	r3PI.d = startDir;
-	
-	while (1)
+	for (int i = 0; i <= 5; i++)
 	{
-		// follow_segment();
-		
-		// Drive straight a bit.  This helps us in case we entered the
-		// intersection at an angle.
-		// Note that we are slowing down - this prevents the robot
-		// from tipping forward too much.
-		// set_motors(50,50);
-		// delay_ms(50);
-
-		// Now read the sensors and check the intersection type.
-		// read_line(sensors,IR_EMITTERS_ON);
-		
-		// Check for left and right exits
-		
-		
-		// Drive straight a bit more - this is enough to line up our
-		// wheels with the intersection.
-		// set_motors(40,40);
-		// delay_ms(200);
-
-		// Check for a straight exit.
-		// read_line(sensors,IR_EMITTERS_ON);
-		// if(sensors[1] > 200 || sensors[2] > 200 || sensors[3] > 200)
-		
-		gotoPoint(goX, goY);
-		print3PI(r3PI);
-		while(1);
+		gotoPoint(i, i);
 	}
+	print3PI(r3PI);
+	
+	while(1);
 }
 
 // Local Variables: **
