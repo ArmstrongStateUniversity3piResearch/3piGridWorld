@@ -57,7 +57,7 @@ void initialize() {
 	unsigned int counter;
 	
 	pololu_3pi_init(2000);
-	// play_from_program_space(mario1);
+	play_from_program_space(mario1);
 	// while(is_playing());
 	
 	while(!button_is_pressed(BUTTON_B)) {
@@ -224,12 +224,11 @@ void gotoPoint(int x, int y) {
 	{
 		changeDir(xdir);
 		
-		if (isMoved++ == 0)
+		if (!isMoved)
 		{
+			isMoved = 1;
 			set_motors(50,50);
 			delay_ms(50);
-			//set_motors(40,40);
-			//delay_ms(200);
 		}
 	}
 	
@@ -258,12 +257,11 @@ void gotoPoint(int x, int y) {
 	if (r3PI.y != y)
 	{
 		changeDir(ydir);
-		if (isMoved++ == 0)
+		if (!isMoved)
 		{
+			isMoved = 1;
 			set_motors(50,50);
 			delay_ms(50);
-			//set_motors(40,40);
-			//delay_ms(200);
 		}
 	}
 	
@@ -351,10 +349,10 @@ int move(int dir, int units)
 {
 	switch(dir)
 	{
-		case 0: gotoPoint(r3PI.x, r3PI.y + units);
-		case 1: gotoPoint(r3PI.x + units, r3PI.y);
-		case 2: gotoPoint(r3PI.x, r3PI.y - units);
-		case 3: gotoPoint(r3PI.x - units, r3PI.y);
+		case 0: gotoPoint(r3PI.x, r3PI.y + units); break;
+		case 1: gotoPoint(r3PI.x + units, r3PI.y); break;
+		case 2: gotoPoint(r3PI.x, r3PI.y - units); break;
+		case 3: gotoPoint(r3PI.x - units, r3PI.y); break;
 	}
 }
 
@@ -367,77 +365,6 @@ int main()
 	int gotoX = 4;
 	int gotoY = 2;
 	
-	// Welcome message
-	print("Hi");
-	delay_ms(1000);
-	
-	// Select start location
-	while (!button_is_pressed(BUTTON_A))
-	{
-		clear();
-		
-		print("Start loc: ");
-		
-		lcd_goto_xy(0, 1);
-		
-		print_long(r3PI.x);
-		print(" ");
-		print_long(r3PI.y);
-		
-		if (button_is_pressed(BUTTON_B))
-		r3PI.x < 5 ? r3PI.x++ : (r3PI.x = 0);
-		if (button_is_pressed(BUTTON_C))
-		r3PI.y < 5 ? r3PI.y++ : (r3PI.y = 0);
-		
-		delay_ms(100);
-	}
-	wait_for_button_release(BUTTON_A);
-	delay_ms(100);
-	
-	// Select start direction
-	while (!button_is_pressed(BUTTON_A))
-	{
-		clear();
-		
-		print("Start Dir: ");
-		
-		lcd_goto_xy(0, 1);
-		
-		print(NESW[r3PI.d]);
-		
-		if (button_is_pressed(BUTTON_B))
-		r3PI.d < 3 ? r3PI.d++ : (r3PI.d = 0);
-		
-		delay_ms(100);
-	}
-	wait_for_button_release(BUTTON_A);
-	delay_ms(100);
-	
-	// Select goto location
-	while (!button_is_pressed(BUTTON_A))
-	{
-		clear();
-		
-		print("Go loc: ");
-		
-		lcd_goto_xy(0, 1);
-		
-		print_long(gotoX); // x-coordinate
-		print(" ");
-		print_long(gotoY); // y-coordinate
-		
-		delay_ms(100);
-		
-		if (button_is_pressed(BUTTON_B))
-		gotoX < 5 ? gotoX++ : (gotoX = 0);
-		if (button_is_pressed(BUTTON_C))
-		gotoY < 5 ? gotoY++ : (gotoY = 0);
-		
-		delay_ms(100);
-	}
-	wait_for_button_release(BUTTON_A);
-	delay_ms(1000);
-	
 	gotoPoint(gotoX, gotoY);
 	print3PI(r3PI);
 	
@@ -445,6 +372,18 @@ int main()
 	{
 		gotoPoint(i, i);
 	}
+	print3PI(r3PI);
+	
+	move(SOUTH, 2);
+	print3PI(r3PI);
+	
+	gotoCorner(3);
+	print3PI(r3PI);
+	
+	move(SOUTH, 2);
+	print3PI(r3PI);
+	
+	gotoEdge(2);
 	print3PI(r3PI);
 	
 	while(1);
