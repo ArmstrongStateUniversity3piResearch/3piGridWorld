@@ -2,7 +2,7 @@
  * follow_segment.c
  *
  * This file just contains the follow_segment() function, which causes
- * 3pi to follow a segment of the maze until it detects an
+ * 3pi to follow a segment until it detects an
  * intersection, a dead end, or the finish.
  *
  */
