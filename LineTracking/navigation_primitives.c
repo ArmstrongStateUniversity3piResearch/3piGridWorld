@@ -300,11 +300,10 @@ int gotoCorner(int c) {
 int gotoEdge(int e) {
 	switch(e)
 	{
-		// 0 - 3 are edges/sides around the Grid World going counterclockwise starting at the bottom edge.
-		case 0: return gotoIntersection(0, r3PI.y);
-		case 1: return gotoIntersection(r3PI.x, 0);
-		case 2: return gotoIntersection(MAX_X, r3PI.y);
-		case 3: return gotoIntersection(r3PI.x, MAX_Y);
+		case 0: return gotoIntersection(r3PI.x, MAX_Y);
+		case 1: return gotoIntersection(MAX_X, r3PI.y);
+		case 2: return gotoIntersection(r3PI.x, 0);
+		case 3: return gotoIntersection(0, r3PI.y);
 	}
 }
 
