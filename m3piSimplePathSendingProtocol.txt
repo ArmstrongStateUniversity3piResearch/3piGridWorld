@@ -1,0 +1,22 @@
+Armstrong Robotics m3pi Simple Path Sending Protocol
+
+Send through serial:
+'[NAME OF ROBOT EXPRESSED AS A SINGLE CHARACTER][ENTIRE PATH WRITTEN AS A SERIES OF X AND Y COORDINATES]fg'
+
+NOTE: Robot names must NOT be the characters 'f' or 'g'
+NOTE: 'f' finishes a path for each individual robot, 'g' tells ALL robots to go
+NOTE: Send and many paths as necessary to as many robots as necessary by starting the path with
+the roobot's name, writing the path without spaces, and concluding the path with the character 'f'
+
+EXAMPLES:
+
+Given a robot with some name, 'p'
+Given a path, (1, 1), (2, 2), (3, 3)
+Send the following message through serial:
+p112233fg
+
+Given two robots with names, 'p' and 'q'
+Given a path, (1, 1), (2, 2), (3, 3) for 'p'
+Given a path, (0, 0), (0, 5), (5, 5) for 'q'
+Send the following message through serial:
+p112233fq000555fg
